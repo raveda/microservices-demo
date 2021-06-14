@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: "aksazurearc-288e"
+    labels:
+        app: "aksazurearc-288e"
+spec:
+    type: ClusterIP
+    ports:
+    - port: 9555
+      targetPort: 9555
+      protocol: TCP
+      name: http
+    selector:
+        app: "aksazurearc-288e"
