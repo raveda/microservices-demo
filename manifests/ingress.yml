@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "aksazurearc-288e"
+    labels:
+        app: "aksazurearc-288e"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: aksonlinebot-aksazurearc-288e.080d771f119342999717.centralus.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "aksazurearc-288e"
+                servicePort: 9555
