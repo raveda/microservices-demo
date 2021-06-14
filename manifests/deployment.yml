@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aksazurearc-288e"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aksazurearc-288e"
+  template:
+    metadata:
+      labels:
+        app: "aksazurearc-288e"
+    spec:
+      containers:
+        - name: "aksazurearc-288e"
+          image: "ravedaacr.azurecr.io/aksazurearc"
+          ports:
+          - containerPort: 9555
