@@ -1,0 +1,51 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ravedaacr.azurecr.io
+        username: ${{ secrets.acr_ravedaacr_username }}
+        password: ${{ secrets.acr_ravedaacr_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src/adservice" -f  "src/adservice/Dockerfile" -t ravedaacr.azurecr.io/aksazurearc:${{ github.sha }} --label dockerfile-path=src/adservice/Dockerfile
+        docker push ravedaacr.azurecr.io/aksazurearc:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_aksazurearc_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep aksonlinebot | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace aksonlinebot`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: aksonlinebot
+        container-registry-url: ravedaacr.azurecr.io
+        container-registry-username: ${{ secrets.acr_ravedaacr_username }}
+        container-registry-password: ${{ secrets.acr_ravedaacr_password }}
+        secret-name: aksazurearcdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: aksonlinebot
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+          manifests/ingress.yml
+        images: |
+          ravedaacr.azurecr.io/aksazurearc:${{ github.sha }}
+        imagepullsecrets: |
+          aksazurearcdockerauth
